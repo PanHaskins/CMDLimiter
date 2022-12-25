@@ -1,10 +1,10 @@
-package me.panhaskins.cmdlimit;
+package me.panhaskins.cmdlimit.api;
 
 import com.google.common.collect.ImmutableMap;
-import me.panhaskins.cmdlimit.colors.GradientPattern;
-import me.panhaskins.cmdlimit.colors.Pattern;
-import me.panhaskins.cmdlimit.colors.RainbowPattern;
-import me.panhaskins.cmdlimit.colors.SolidPattern;
+import me.panhaskins.cmdlimit.api.colors.GradientPattern;
+import me.panhaskins.cmdlimit.api.colors.Pattern;
+import me.panhaskins.cmdlimit.api.colors.RainbowPattern;
+import me.panhaskins.cmdlimit.api.colors.SolidPattern;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;

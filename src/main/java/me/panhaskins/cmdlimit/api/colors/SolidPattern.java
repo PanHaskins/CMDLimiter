@@ -1,6 +1,6 @@
-package me.panhaskins.cmdlimit.colors;
+package me.panhaskins.cmdlimit.api.colors;
 
-import me.panhaskins.cmdlimit.APIColor;
+import me.panhaskins.cmdlimit.api.APIColor;
 
 import java.util.regex.Matcher;
 

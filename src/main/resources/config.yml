@@ -9,9 +9,11 @@ commands:
     console:
       - "give %player% diamond 1"
       - "give %player% emerald 1"
-    # The message to be used after the command is executed.
+
     use: "&fYou got a &ddiamond &fand &aemerald&f."
     used: "&c&l[!] You reached max uses"
+
+    permission: ""
     joinMessage:
       - "&e--------------------"
       - "&fYou didn't pick up your free reward"

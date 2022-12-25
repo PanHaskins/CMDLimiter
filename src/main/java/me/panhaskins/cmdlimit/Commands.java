@@ -1,5 +1,6 @@
 package me.panhaskins.cmdlimit;
 
+import me.panhaskins.cmdlimit.api.APIColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -37,6 +38,7 @@ public class Commands implements CommandExecutor {
         player.sendMessage(APIColor.process(commandSection.getString("use")));
     }
 
+    @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         Set<String> commandsList = CMDLimiter.config.get().getConfigurationSection("commands").getKeys(false);
         Player player = (Player) sender;

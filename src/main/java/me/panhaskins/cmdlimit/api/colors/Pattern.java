@@ -1,4 +1,4 @@
-package me.panhaskins.cmdlimit.colors;
+package me.panhaskins.cmdlimit.api.colors;
 
 public interface Pattern {
 

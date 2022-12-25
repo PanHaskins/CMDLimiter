@@ -1,4 +1,4 @@
-package me.panhaskins.cmdlimit;
+package me.panhaskins.cmdlimit.api;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
