@@ -1,0 +1,8 @@
+name: CMDLimit
+version: '${project.version}'
+main: me.panhaskins.cmdlimit.CMDLimiter
+api-version: 1.17
+authors: [ PanHaskins ]
+commands:
+  clreload:
+    description: reload plugin

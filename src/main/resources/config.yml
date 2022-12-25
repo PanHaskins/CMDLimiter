@@ -1,0 +1,26 @@
+ # You can use HEX, GRADIENTS and RAINBOW COLORS in all of these messages
+ # HEX COLOR: <SOLID:00FFD3>TEXT
+ # GRADIENT COLOR: <GRADIENT:2C08BA>TEXT</GRADIENT:028A97>
+ # RAINBOW COLOR: <RAINBOW1>TEXT</RAINBOW>
+
+commands:
+  free:
+    # A command that is executed after the command is used.
+    console:
+      - "give %player% diamond 1"
+      - "give %player% emerald 1"
+    # The message to be used after the command is executed.
+    use: "&fYou got a &ddiamond &fand &aemerald&f."
+    used: "&c&l[!] You reached max uses"
+    joinMessage:
+      - "&e--------------------"
+      - "&fYou didn't pick up your free reward"
+      - "&fUse &e/free"
+      - "&e--------------------"
+
+onlyPlayer: "&c&l[!] &fThis command is only for player."
+
+Reload:
+  reloading: "&c&l[!] &fThe &cCMDLimit &fplugin is &creloading&f!"
+  complete: "&a&l[!] &fCMDLimit reload is &acomplete&f!"
+  noPermission: "&c&l[!] &fYou don´t have permission to use &c/clreload&f!"
