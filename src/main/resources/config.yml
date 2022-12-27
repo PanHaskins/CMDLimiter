@@ -23,7 +23,7 @@ commands:
         - "&fUse &e/free"
         - "&e--------------------"
 
-onlyPlayer: "&c&l[!] &fThis command is only for player."
+onlyForPlayer: "&c&l[!] &fThis command is only for player."
 
 reloading: "&c&l[!] &fThe &cCMDLimit &fplugin is &creloading&f!"
 reloadComplete: "&a&l[!] &fCMDLimit reload is &acomplete&f!"

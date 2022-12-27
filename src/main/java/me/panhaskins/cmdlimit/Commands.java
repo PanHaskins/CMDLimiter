@@ -45,26 +45,27 @@ public class Commands implements CommandExecutor {
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         Set<String> commandsList = CMDLimiter.config.get().getConfigurationSection("commands").getKeys(false);
-        Player player = (Player) sender;
+
         for (String cmdName : commandsList) {
             if (command.getName().equalsIgnoreCase(cmdName)) {
+                if (sender instanceof Player){
+                    Player player = (Player) sender;
+                    if (CMDLimiter.config.get().getString("commands." + cmdName + ".permission").isEmpty()){
 
-                if (CMDLimiter.config.get().getString("commands." + cmdName + ".permission").isEmpty()){
-
-                    if (player != null) {
                         processCommand(player, cmdName);
-                    }
 
-                } else {
-                    if (player.hasPermission(Objects.requireNonNull(CMDLimiter.config.get().getString("commands." + cmdName + ".permission")))) {
-                        if (player != null) {
-                            processCommand(player, cmdName);
-                        }
+                        } else {
+                            if (player.hasPermission(CMDLimiter.config.get().getString("commands." + cmdName + ".permission"))) {
+
+                                processCommand(player, cmdName);
+
+                            } else {
+                                sender.sendMessage(APIColor.process(CMDLimiter.config.get().getString("noPermission").replaceAll("%command%", cmdName)));
+                            }
+                    }
                     } else {
-                        sender.sendMessage(APIColor.process(CMDLimiter.config.get().getString("noPermission").replaceAll("%command%", cmdName)));
+                        Bukkit.getConsoleSender().sendMessage(APIColor.process(CMDLimiter.config.get().getString("onlyForPlayer")));
                     }
-                }
-
 
 
                 return true;
