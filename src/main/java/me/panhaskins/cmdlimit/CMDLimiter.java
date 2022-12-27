@@ -1,19 +1,18 @@
 package me.panhaskins.cmdlimit;
 
 import me.panhaskins.cmdlimit.api.APIColor;
-import me.panhaskins.cmdlimit.api.APICommand;
 import me.panhaskins.cmdlimit.api.APIConfig;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
@@ -22,8 +21,6 @@ import java.util.Set;
 public final class CMDLimiter extends JavaPlugin implements Listener {
 
     public static APIConfig config, data;
-    public static Commands commands;
-    private static CMDLimiter instance;
 
     @Override
     public void onEnable() {
@@ -32,19 +29,10 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
         config = new APIConfig(this, getDataFolder() + File.separator + "config.yml" , "config.yml");
         data = new APIConfig(this, getDataFolder() + File.separator + "data.yml" , "data.yml");
 
-        commands = new Commands(this);
 
-        instance = this;
-        setupSimpleCommandMap();
-
-        Set<String> commandsList = CMDLimiter.config.get().getConfigurationSection("commands").getKeys(false);
-
-        for (String cmdName : commandsList) {
-            // registerCommands(cmdName); - error
-        }
+        registerCommands();
 
         this.getServer().getPluginManager().registerEvents(this, this);
-
 
         }
 
@@ -52,14 +40,14 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
 
         if (cmd.getName().equalsIgnoreCase("clreload")) {
             if (sender.hasPermission("cl.reload")) {
-                sender.sendMessage(APIColor.process(config.get().getString("Reload.reloading")));
+                sender.sendMessage(APIColor.process(config.get().getString("reloading")));
                 config.reload();
                 data.reload();
-                sender.sendMessage(APIColor.process(config.get().getString("Reload.complete")));
+                sender.sendMessage(APIColor.process(config.get().getString("reloadComplete")));
             }
             else
             {
-                sender.sendMessage(APIColor.process(config.get().getString("Reload.noPermission")));
+                sender.sendMessage(APIColor.process(config.get().getString("noPermission").replaceAll("%command%", "clreload")));
             }
         }
         return true;
@@ -67,43 +55,60 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
+        Set<String> commandsList = config.get().getConfigurationSection("commands").getKeys(false);
         Player player = e.getPlayer();
-        if (!data.get().contains("Data.free." + player.getName())) {
-            for (String joinMessage : APIColor.process(config.get().getStringList("joinMessage"))) {
-                player.sendMessage(joinMessage);
+        for (String cmdName : commandsList) {
+
+            if (config.get().contains("commands." + cmdName + ".join.enabled")){
+
+                if (!searchPlayer(player, cmdName)) {
+                    for (String joinMessage : APIColor.process(config.get().getStringList("commands." + cmdName + ".join.message"))) {
+
+                        player.sendMessage(joinMessage);
+
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    public static boolean searchPlayer(Player player, String cmdName){
+        for (String playerList : CMDLimiter.data.get().getStringList("Data." + cmdName)) {
+
+            if (playerList.contains(player.getName())) {
+                return true;
+
             }
         }
+        return false;
     }
 
+    private void registerCommands() {
+        Set<String> commandsList = config.get().getConfigurationSection("commands").getKeys(false);
+        for (String cmdName : commandsList) {
 
+            registerCommand(new Commands(), config.get().getString(cmdName + ".description"), cmdName);
 
-    private static SimpleCommandMap sCommandMap;
-    private SimplePluginManager sPluginManager;
-    private void registerCommands(APICommand commands) {
-        // Arrays.stream(commands).forEach(command -> sCommandMap.register("CMDLimiter", command)); - error
-    }
-
-    private void setupSimpleCommandMap() {
-        sPluginManager = (SimplePluginManager) this.getServer().getPluginManager();
-        Field field = null;
-        try {
-            field = SimplePluginManager.class.getDeclaredField("commandMap");
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        field.setAccessible(true);
-        try {
-            sCommandMap = (SimpleCommandMap) field.get(sPluginManager);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public static SimpleCommandMap getCommandMap() {
-        return sCommandMap;
+
     }
 
-    public static CMDLimiter getInstance() {
-        return instance;
+    private void registerCommand(CommandExecutor commandExecutor, String description, String name, String... aliases) { //to co znamenaj tie tri bodky. To som este nevidel uvidis
+        try {
+            Constructor<PluginCommand> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+            constructor.setAccessible(true);
+            PluginCommand pluginCommand = constructor.newInstance(name, this);
+            pluginCommand.setExecutor(commandExecutor);
+
+            if (description != null) pluginCommand.setDescription(description);
+            pluginCommand.setAliases(Arrays.asList(aliases));
+            Field field = SimplePluginManager.class.getDeclaredField("commandMap");
+            field.setAccessible(true);
+            CommandMap commandMap = (CommandMap) field.get(this.getServer().getPluginManager());
+            commandMap.register(this.getDescription().getName(), pluginCommand);
+        }catch (Exception e) { e.printStackTrace(); }
     }
 
 
