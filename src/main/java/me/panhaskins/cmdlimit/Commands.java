@@ -55,7 +55,7 @@ public class Commands implements CommandExecutor {
                         processCommand(player, cmdName);
 
                         } else {
-                            if (player.hasPermission(CMDLimiter.config.get().getString("commands.." + cmdName + ".permission"))) {
+                            if (player.hasPermission(CMDLimiter.config.get().getString("commands." + cmdName + ".permission"))) {
 
                                 processCommand(player, cmdName);
 

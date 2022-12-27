@@ -22,7 +22,7 @@ commands:
         - "&fYou didn't pick up your free reward"
         - "&fUse &e/free"
         - "&e--------------------"
-s: ""
+
 onlyForPlayer: "&c&l[!] &fThis command is only for player."
 
 reloading: "&c&l[!] &fThe &cCMDLimit &fplugin is &creloading&f!"
