@@ -2,6 +2,7 @@
  # HEX COLOR: <SOLID:00FFD3>TEXT
  # GRADIENT COLOR: <GRADIENT:2C08BA>TEXT</GRADIENT:028A97>
  # RAINBOW COLOR: <RAINBOW1>TEXT</RAINBOW>
+updateChecker: true
 
 commands:
   free:
@@ -11,6 +12,7 @@ commands:
       - "give %player% diamond 1"
       - "give %player% emerald 1"
 
+    maxUse: 3
     use: "&fYou got a &bdiamond &fand &aemerald&f."
     used: "&c&l[!] &fYou reached max uses"
 
