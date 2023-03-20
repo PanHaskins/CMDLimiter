@@ -2,7 +2,12 @@ package me.panhaskins.cmdlimit;
 
 import me.panhaskins.cmdlimit.api.APIColor;
 import me.panhaskins.cmdlimit.api.APIConfig;
+import me.panhaskins.cmdlimit.api.UpdateChecker;
+import org.bukkit.Bukkit;
 import org.bukkit.command.*;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -29,7 +34,18 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
         config = new APIConfig(this, getDataFolder() + File.separator + "config.yml" , "config.yml");
         data = new APIConfig(this, getDataFolder() + File.separator + "data.yml" , "data.yml");
 
-
+        if(config.get().getBoolean("updateChecker")){
+            new UpdateChecker(this, 100289).getLatestVersion(version -> {
+                if (!this.getDescription().getVersion().equalsIgnoreCase(version)) {
+                   Bukkit.getConsoleSender().sendMessage("");
+                    Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&eCMDLimiter &fPlugin"));
+                    Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&fYour plugin version is out of date."));
+                    Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&fI recommend updating it."));
+                    Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &fhttps://www.spigotmc.org/resources/%E2%8F%B2-cmd-limiter-%E2%8F%B2.100289/"));
+                    Bukkit.getConsoleSender().sendMessage("");
+                }
+            });
+        }
         registerCommands();
 
         this.getServer().getPluginManager().registerEvents(this, this);
@@ -60,8 +76,13 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
         for (String cmdName : commandsList) {
 
             if (config.get().contains("commands." + cmdName + ".join.enabled")){
+                ConfigurationSection dataSection = data.get().getConfigurationSection("Data." + cmdName);
+                if (dataSection == null) {
+                    dataSection = data.get().createSection("Data." + cmdName);
+                    data.save();
+                }
 
-                if (!searchPlayer(player, cmdName)) {
+                if (!dataSection.getKeys(false).contains(player.getName())) {
                     for (String joinMessage : APIColor.process(config.get().getStringList("commands." + cmdName + ".join.message"))) {
 
                         player.sendMessage(joinMessage);
@@ -74,23 +95,11 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
         }
     }
 
-    public static boolean searchPlayer(Player player, String cmdName){
-        for (String playerList : CMDLimiter.data.get().getStringList("Data." + cmdName)) {
-
-            if (playerList.contains(player.getName())) {
-                return true;
-
-            }
-        }
-        return false;
-    }
-
     private void registerCommands() {
         Set<String> commandsList = config.get().getConfigurationSection("commands").getKeys(false);
         for (String cmdName : commandsList) {
 
             registerCommand(new Commands(), config.get().getString(cmdName + ".description"), cmdName);
-
         }
 
     }
@@ -108,9 +117,10 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
             field.setAccessible(true);
             CommandMap commandMap = (CommandMap) field.get(this.getServer().getPluginManager());
             commandMap.register(this.getDescription().getName(), pluginCommand);
-        }catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
 
     @Override
     public void onDisable() {
