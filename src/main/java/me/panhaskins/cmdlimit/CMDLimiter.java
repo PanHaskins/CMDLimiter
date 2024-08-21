@@ -1,43 +1,44 @@
 package me.panhaskins.cmdlimit;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.panhaskins.cmdlimit.api.APIColor;
 import me.panhaskins.cmdlimit.api.APIConfig;
 import me.panhaskins.cmdlimit.api.UpdateChecker;
+import me.panhaskins.cmdlimit.commands.AdminCommand;
+import me.panhaskins.cmdlimit.commands.FreeCommands;
+import me.panhaskins.cmdlimit.utils.DataManager;
+import me.panhaskins.cmdlimit.utils.command.CommandManager;
 import org.bukkit.Bukkit;
-import org.bukkit.command.*;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
-import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 
 public final class CMDLimiter extends JavaPlugin implements Listener {
 
-    public static APIConfig config, data;
+    public static APIConfig config;
+    public static DataManager dataManager;
+    private CustomPlaceholders customPlaceholders;
+    public static Set<String> commandList = new HashSet<>();
+
 
     @Override
     public void onEnable() {
 
         // Plugin startup logic
-        config = new APIConfig(this, getDataFolder() + File.separator + "config.yml" , "config.yml");
-        data = new APIConfig(this, getDataFolder() + File.separator + "data.yml" , "data.yml");
+        config = new APIConfig(this, "config.yml");
 
         if(config.get().getBoolean("updateChecker")){
             new UpdateChecker(this, 100289).getLatestVersion(version -> {
                 if (!this.getDescription().getVersion().equalsIgnoreCase(version)) {
-                   Bukkit.getConsoleSender().sendMessage("");
+                    Bukkit.getConsoleSender().sendMessage("");
                     Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&eCMDLimiter &fPlugin"));
                     Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&fYour plugin version is out of date."));
                     Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&fI recommend updating it."));
@@ -46,85 +47,60 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
                 }
             });
         }
-        registerCommands();
+
+        commandList.addAll(config.get().getConfigurationSection("commands").getKeys(false));
+
+        //CommandManager commandManager = new CommandManager(this, config);
+        //commandManager.registerCommands(new Commands(commandManager));
+        //commandManager.registerCommand(new Commands(commandManager), null, "cmdlimiter");
+
+        // Registrácia admin príkazu
+        CommandManager.registerCommand(this, new AdminCommand(this));
+
+        if (!commandList.isEmpty()) {
+            for (String commandName : commandList) {
+                CommandManager.registerCommand(this, new FreeCommands(commandName, config.get().getConfigurationSection("commands." + commandName)));
+            }
+        }
+
+        dataManager = new DataManager();
+        dataManager.load();
+
+        customPlaceholders = new CustomPlaceholders();
+        customPlaceholders.register();
 
         this.getServer().getPluginManager().registerEvents(this, this);
 
-        }
-
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-
-        if (cmd.getName().equalsIgnoreCase("clreload")) {
-            if (sender.hasPermission("cl.reload")) {
-                sender.sendMessage(APIColor.process(config.get().getString("reloading")));
-                config.reload();
-                data.reload();
-                sender.sendMessage(APIColor.process(config.get().getString("reloadComplete")));
+        BukkitTask autosave = new BukkitRunnable() {
+            @Override
+            public void run() {
+                dataManager.save();
             }
-            else
-            {
-                sender.sendMessage(APIColor.process(config.get().getString("noPermission").replaceAll("%command%", "clreload")));
-            }
-        }
-        return true;
+        }.runTaskLaterAsynchronously(this, 20 * 60 * 5);
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
-        Set<String> commandsList = config.get().getConfigurationSection("commands").getKeys(false);
         Player player = e.getPlayer();
-        for (String cmdName : commandsList) {
 
-            if (config.get().contains("commands." + cmdName + ".join.enabled")){
-                ConfigurationSection dataSection = data.get().getConfigurationSection("Data." + cmdName);
-                if (dataSection == null) {
-                    dataSection = data.get().createSection("Data." + cmdName);
-                    data.save();
-                }
+        for (String cmdName : commandList) {
 
-                if (!dataSection.getKeys(false).contains(player.getName())) {
-                    for (String joinMessage : APIColor.process(config.get().getStringList("commands." + cmdName + ".join.message"))) {
-
-                        player.sendMessage(joinMessage);
-
-                    }
+            if (config.get().getBoolean("commands." + cmdName + ".join.enabled", false)) {
+                if(dataManager.getPlayer(player, cmdName) > config.get().getInt("commands." + cmdName + ".maxUse")){
+                    PlaceholderAPI.setPlaceholders(player, APIColor.process(config.get().getStringList("commands." + cmdName + ".join.message"))).forEach(player::sendMessage);
                 }
 
             }
 
         }
-    }
 
-    private void registerCommands() {
-        Set<String> commandsList = config.get().getConfigurationSection("commands").getKeys(false);
-        for (String cmdName : commandsList) {
-
-            registerCommand(new Commands(), config.get().getString(cmdName + ".description"), cmdName);
-        }
-
-    }
-
-    private void registerCommand(CommandExecutor commandExecutor, String description, String name, String... aliases) { //to co znamenaj tie tri bodky. To som este nevidel uvidis
-        try {
-            Constructor<PluginCommand> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
-            constructor.setAccessible(true);
-            PluginCommand pluginCommand = constructor.newInstance(name, this);
-            pluginCommand.setExecutor(commandExecutor);
-
-            if (description != null) pluginCommand.setDescription(description);
-            pluginCommand.setAliases(Arrays.asList(aliases));
-            Field field = SimplePluginManager.class.getDeclaredField("commandMap");
-            field.setAccessible(true);
-            CommandMap commandMap = (CommandMap) field.get(this.getServer().getPluginManager());
-            commandMap.register(this.getDescription().getName(), pluginCommand);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        if(customPlaceholders != null) customPlaceholders.unregister();
+        if(dataManager != null) dataManager.save();
     }
 
 }

@@ -12,27 +12,24 @@ public class APIConfig {
     private final JavaPlugin plugin;
 
     private final String configPath;
-    private final String resourcePath;
 
     private File file;
     private YamlConfiguration cfg;
 
-    public APIConfig(JavaPlugin plugin, String configPath, String resourcePath) {
+    public APIConfig(JavaPlugin plugin, String configPath) {
         this.plugin = plugin;
         this.configPath = configPath;
-        this.resourcePath = resourcePath;
-
         create();
     }
 
     private void create() {
         if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdir();
 
-        file = new File(configPath);
-        plugin.getResource(resourcePath);
+        file = new File(plugin.getDataFolder() + File.separator + configPath);
+        plugin.getResource(configPath);
         if (!file.exists()) {
             try {
-                Files.copy(plugin.getResource(resourcePath), file.toPath());
+                Files.copy(plugin.getResource(configPath), file.toPath());
             } catch (IOException e) {
                 e.printStackTrace();
             }
