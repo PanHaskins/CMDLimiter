@@ -5,10 +5,9 @@
 updateChecker: true
 dateFormat: "dd.MM.yyyy HH:mm:ss" # required restart
 
+# This is for custom commands.
 commands:
   free:
-    description: "Command for free Items"
-
     console:
       - "give %player% diamond 1"
       - "give %player% emerald 1"
@@ -18,30 +17,20 @@ commands:
     minimumRequirements: 3
 
     requirements:
-      commandExpiration:
-        condition: "dateExpiration:18.07.2024 16:00:00"
-        denyMessage: "&c&l[!] &fThis command is expired!"
-      playersOnline:
-        condition: "%server_online%>1"
-        denyMessage: "&c&l[!] &fThere must be more than 1 player on the server"
-      hasFly:
-        condition: "%player_allow_flight%==no"
-        denyMessage: "&c&l[!] &fYou can't use this command while you are flying"
-
       commandExpirationCheck:
         type: "<=" # currentDate <= 18.07.2024 16:00:00 -> is Before ?
         input: "currentDate"
-        output: "18.07.2024 16:00:00"
+        output: "22.08.2024 13:00:00"
         denyMessage: "&c&l[!] &fThis command is expired!"
       permissionCheck:
         type: "!=" # permission != cmdlimiter.free
         input: "permission"
         output: "cmdlimiter.free"
-        denyMessage: "&c&l[!] &fThere must be more than 1 player on the server"
+        denyMessage: "&c&l[!] &fYou don't have permission to use this command"
       flyCheck:
         type: "=="
         input: "%player_allow_flight%"
-        output: "&cNe"
+        output: "no"
         denyMessage: "&c&l[!] &fYou can't use this command while you are flying"
 
 
@@ -56,18 +45,36 @@ commands:
         - "&fUse &e/free"
         - "&e--------------------"
 
+  "kit starter":
+    isCustomCommand: false
+
+    # When player uses this command, counter will not increase.
+    # For counter to increase, admin must use admin set command.
+    onlyWhenUsedAdminCommand: false # work only when isCustomCommand is false
+
+    cooldown: 3 # in seconds
+
+    globalMaxUse: 2
+    # Use this only when you want to block command when player reaches max use.
+    maxUse: 3
+
+    usedGlobal: "&c&l[!] &fGlobal uses reached max limit"
+    used: "&c&l[!] &fYou reached max uses"
+
+
 help:
   - "&c&lCMDLimiter HELP"
   - "&f- &c/cmdlimiter reload &fReloads the config.yml and data.yml files."
   - "&f- &c/cmdlimiter set <player> [command] <uses> &fSets the number of uses for a specific player."
-commandUsage: "&c&l[!] &fUsage: &c%command%&f!"
+commandUsage: "&c&l[!] &fUsage: &c/%command%&f!"
+cooldown: "&c&l[!] &fYou must wait &c%time% &fseconds before using &c/%command% &fagain!"
 
 reloading: "&c&l[!] &fThe &cCMDLimit &fplugin is &creloading&f!"
 reloadComplete: "&a&l[!] &fCMDLimit reload is &acomplete&f!"
 dataSaved: "&a&l[!] &fCMDLimit data saved&f!"
-setPlayerUses: "&a&l[!] &fPlayer &a%player% &fnow has &a%uses% &fuses."
+setPlayerUses: "&a&l[!] &fPlayer &a%player% &fnow has &a%uses% &fuses in &a/%command%&f."
 
 onlyForPlayer: "&c&l[!] &fThis command is only for player."
 playerNotFound: "&c&l[!] &fPlayer &c%player% &fnot found!"
-commandNotFound: "&c&l[!] &fCommand &c%command% &fnot found!"
+commandNotFound: "&c&l[!] &fCommand &c/%command% &fnot found!"
 noPermission: "&c&l[!] &fYou don´t have permission to use &c/%command%&f!"

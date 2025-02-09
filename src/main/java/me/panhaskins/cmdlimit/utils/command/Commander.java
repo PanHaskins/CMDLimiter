@@ -25,21 +25,4 @@ public abstract class Commander implements TabExecutor {
 
     @Override
     public abstract List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args);
-
-
-    protected void sendMessage(CommandSender sender, String message, OfflinePlayer target) {
-        sender.sendMessage(PlaceholderAPI.setPlaceholders(target, APIColor.process(message)));
-    }
-
-    protected void sendMessage(CommandSender sender, String message){
-        sender.sendMessage(APIColor.process(message));
-    }
-
-    protected void sendMessage(CommandSender sender, List<String> messages, OfflinePlayer target) {
-        PlaceholderAPI.setPlaceholders(target, APIColor.process(messages)).forEach(sender::sendMessage);
-    }
-
-    protected void sendMessage(CommandSender sender, List<String> messages) {
-        APIColor.process(messages).forEach(sender::sendMessage);
-    }
 }

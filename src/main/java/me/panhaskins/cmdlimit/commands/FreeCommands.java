@@ -1,7 +1,6 @@
 package me.panhaskins.cmdlimit.commands;
 
 import me.panhaskins.cmdlimit.CMDLimiter;
-import me.panhaskins.cmdlimit.api.APIColor;
 import me.panhaskins.cmdlimit.utils.ConditionUtils;
 import me.panhaskins.cmdlimit.utils.command.Commander;
 import org.bukkit.Bukkit;
@@ -29,11 +28,20 @@ public class FreeCommands extends Commander {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player)) {
-            sendMessage(sender, CMDLimiter.config.get().getString("playerOnly"));
+            CMDLimiter.messager.sendMessage((Player) sender, CMDLimiter.config.get().getString("playerOnly"));
             return true;
         }
 
-        if (checkCommandConditions((Player) sender, commandSection)){
+        Player player = (Player) sender;
+        String commandName = command.getName();
+        if (CMDLimiter.dataManager.isOnCooldown(player, commandName)) {
+            CMDLimiter.messager.sendMessage(player, CMDLimiter.config.get().getString("cooldown")
+                    .replaceAll("%time%", String.valueOf(CMDLimiter.dataManager.getRemainingCooldown(player, commandName)))
+                    .replaceAll("%command%", commandName), player);
+            return false;
+        }
+
+        if (ConditionUtils.checkRequirements((Player) sender, commandSection)){
             executeCommandIfAllowed((Player) sender, getName(), commandSection);
                 return true;
             }
@@ -44,54 +52,30 @@ public class FreeCommands extends Commander {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> commandList = new ArrayList<>(CMDLimiter.commandList);
-        return commandList;
-    }
-
-    public boolean checkCommandConditions (Player player, ConfigurationSection commandSection) {
-        int minimumRequirements = commandSection.getInt("minimumRequirements", 0);
-        ConfigurationSection requirementsSection = commandSection.getConfigurationSection("requirements");
-        if (requirementsSection != null && minimumRequirements > 0) {
-            int metRequirements = 0;
-
-            for (String requirement : requirementsSection.getKeys(false)) {
-                if (metRequirements >= minimumRequirements) {
-                    System.out.println("command conditions presiel mojko");
-                    return true;
-                }
-
-                if (ConditionUtils.checkCondition(player,
-                        requirementsSection.getString(requirement + ".type"),
-                        requirementsSection.getString(requirement + ".input"),
-                        requirementsSection.getString(requirement + ".output")
-                )) {
-                    metRequirements++;
-                    System.out.println("command condition prave presiel");
-                } else {
-                    String denyMessage = requirementsSection.getString(requirement + ".denyMessage");
-                    if (denyMessage != null) {
-                        player.sendMessage(APIColor.process(denyMessage));
-                        return false;
-                    }
-                }
+        List<String> commandList = new ArrayList<>();
+        for (String cmd : CMDLimiter.commandList) {
+            if (CMDLimiter.config.get().getBoolean("commands." + cmd + ".isCustomCommand", true)) {
+                commandList.add(cmd);
             }
         }
-        return true;
 
+        return commandList;
     }
 
     private void executeCommandIfAllowed(Player player, String command, ConfigurationSection commandSection) {
         int maxUse = commandSection.getInt("maxUse");
-        int playerUse = CMDLimiter.dataManager.getPlayer(player, command);
-        System.out.println("use: " + playerUse + " max: " + maxUse);
+        int playerUse = CMDLimiter.dataManager.getPlayer(player.getName(), command);
 
-        if (playerUse < maxUse) {
+        if (playerUse < maxUse || maxUse <= 0) {
             CMDLimiter.dataManager.setPlayer(player.getName(), command, playerUse + 1);
             commandSection.getStringList("console").forEach(consoleCommand ->
                     Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), consoleCommand.replace("%player%", player.getName())));
-            player.sendMessage(APIColor.process(commandSection.getString("use")));
+            CMDLimiter.messager.sendMessage(player, commandSection.getString("use"), player);
+
+            int cooldown = commandSection.getInt("cooldown", 0);
+            if (cooldown > 0) CMDLimiter.dataManager.setCooldown(player, command, cooldown);
         } else{
-            player.sendMessage(APIColor.process(commandSection.getString("used")));
+            CMDLimiter.messager.sendMessage(player, commandSection.getString("used"), player);
         }
 
     }

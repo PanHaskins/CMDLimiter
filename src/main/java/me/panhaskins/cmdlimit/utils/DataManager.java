@@ -5,68 +5,120 @@ import me.panhaskins.cmdlimit.api.APIConfig;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DataManager {
 
-    private HashMap<String, HashMap<String, Integer>> dataMap = new HashMap<>();
+    private final Map<String, Integer> globalData = new HashMap<>();
+    private final Map<String, Map<String, Integer>> playerData = new HashMap<>();
+    private final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
 
-    public void load(){
-
+    public void load() {
         APIConfig data = new APIConfig(JavaPlugin.getPlugin(CMDLimiter.class), "data.yml");
-        dataMap.clear();
+        playerData.clear();
 
         for (String command : CMDLimiter.commandList) {
-
-            dataMap.put(command, new HashMap<>());
-
+            Map<String, Integer> playerData = new HashMap<>();
             ConfigurationSection playerList = data.get().getConfigurationSection("Data." + command);
-            if (playerList != null) playerList.getKeys(false).forEach(player ->
-                    dataMap.get(command).put(player, playerList.getInt(player)));
-
+            if (playerList != null) {
+                for (String player : playerList.getKeys(false)) {
+                    playerData.put(player, playerList.getInt(player));
+                }
+            }
+            this.playerData.put(command, playerData);
         }
-
     }
 
-    public void save(){
-
+    public void save() {
         APIConfig data = new APIConfig(JavaPlugin.getPlugin(CMDLimiter.class), "data.yml");
-        for (String command : CMDLimiter.commandList) {
-            for (String player : dataMap.get(command).keySet()) {
-                data.get().set("Data." + command + "." + player, dataMap.get(command).get(player));
+        for (Map.Entry<String, Map<String, Integer>> entry : playerData.entrySet()) {
+            String command = entry.getKey();
+            for (Map.Entry<String, Integer> playerEntry : entry.getValue().entrySet()) {
+                data.get().set("Data." + command + "." + playerEntry.getKey(), playerEntry.getValue());
             }
         }
         data.save();
     }
 
-    public ArrayList getPlayerNames(String cmdName) {
-        ArrayList<String> players = new ArrayList<>();
-        for (String player : dataMap.get(cmdName).keySet()) {
-            players.add(player);
+    public List<String> getPlayerNames(String cmdName) {
+        return new ArrayList<>(playerData.getOrDefault(cmdName, Collections.emptyMap()).keySet());
+    }
+
+    public int getPlayer(String player, String cmdName) {
+        return playerData.getOrDefault(cmdName, Collections.emptyMap()).getOrDefault(player, 0);
+    }
+
+    public Map<String, Integer> getPlayer(Player player) {
+        Map<String, Integer> playerData = new HashMap<>();
+        for (String command : CMDLimiter.commandList) {
+            playerData.put(command, this.playerData.getOrDefault(command, Collections.emptyMap()).getOrDefault(player.getName(), 0));
         }
-        return players;
-
-    }
-
-    public int getPlayer(Player player, String cmdName) {
-        return dataMap.get(cmdName).getOrDefault(player.getName(), 0);
-    }
-
-    public HashMap<String, Integer> getPlayer(Player player) {
-        HashMap<String, Integer> playerData = new HashMap<>();
-        CMDLimiter.commandList.forEach(command -> playerData.put(command, dataMap.get(command).get(player.getName())));
-
         return playerData;
     }
 
     public void setPlayer(String playerName, String cmdName, int value) {
-        dataMap.computeIfAbsent(cmdName, k -> new HashMap<>());
-        dataMap.get(cmdName).put(playerName, value);
+        playerData.computeIfAbsent(cmdName, k -> new HashMap<>()).put(playerName, value);
     }
 
     public void removePlayer(String playerName, String cmdName) {
-        dataMap.get(cmdName).remove(playerName);
+        Map<String, Integer> commandData = playerData.get(cmdName);
+        if (commandData != null) {
+            commandData.remove(playerName);
+        }
+    }
+
+    public void setGlobal(String cmdName, int value) {
+        globalData.put(cmdName, value);
+    }
+
+    public int getGlobal(String cmdName) {
+        return globalData.getOrDefault(cmdName, 0);
+    }
+
+    public void setCooldown(Player player, String command, int cooldownInSeconds) {
+        cooldowns.computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>())
+                .put(command, System.currentTimeMillis() + cooldownInSeconds * 1000L);
+    }
+
+    public boolean isOnCooldown(Player player, String command) {
+        return cooldowns.containsKey(player.getUniqueId()) &&
+                cooldowns.get(player.getUniqueId()).getOrDefault(command, 0L) > System.currentTimeMillis();
+    }
+
+    public int getRemainingCooldown(Player player, String command) {
+        if (isOnCooldown(player, command)) {
+            long remainingTime = cooldowns.get(player.getUniqueId()).get(command) - System.currentTimeMillis();
+            return (int) (remainingTime / 1000);
+        }
+        return 0;
+    }
+
+    public void startDataSaveTask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                save();
+            }
+        }.runTaskTimerAsynchronously(JavaPlugin.getPlugin(CMDLimiter.class), 0L, 20 * 60 * 5); // Every 5 minutes
+    }
+
+    public void startCooldownCleanTask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (UUID player : cooldowns.keySet()) {
+                    Map<String, Long> playerCooldowns = cooldowns.get(player);
+                    if (playerCooldowns != null) {
+                        playerCooldowns.values().removeIf(cooldown -> cooldown < System.currentTimeMillis());
+                        if (playerCooldowns.isEmpty()) {
+                            cooldowns.remove(player);
+                        }
+                    }
+                }
+            }
+        }.runTaskTimerAsynchronously(JavaPlugin.getPlugin(CMDLimiter.class), 0L, 20L * 60L); // Every minute
     }
 }

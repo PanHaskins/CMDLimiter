@@ -6,7 +6,7 @@ import me.panhaskins.cmdlimit.api.colors.Pattern;
 import me.panhaskins.cmdlimit.api.colors.RainbowPattern;
 import me.panhaskins.cmdlimit.api.colors.SolidPattern;
 import net.md_5.bungee.api.ChatColor;
-import org.apache.commons.lang.Validate;
+
 import org.bukkit.Bukkit;
 
 import java.awt.*;
@@ -285,8 +285,10 @@ public class APIColor {
      */
     private static int getVersion() {
         String version = Bukkit.getVersion();
-        Validate.notEmpty(version, "Cannot get major Minecraft version from null or empty string");
 
+        if (version.isEmpty()) {
+            throw new IllegalArgumentException("Cannot get major Minecraft version from null or empty string");
+        }
         // getVersion()
         int index = version.lastIndexOf("MC:");
         if (index != -1) {

@@ -6,9 +6,12 @@ import me.panhaskins.cmdlimit.api.APIConfig;
 import me.panhaskins.cmdlimit.api.UpdateChecker;
 import me.panhaskins.cmdlimit.commands.AdminCommand;
 import me.panhaskins.cmdlimit.commands.FreeCommands;
+import me.panhaskins.cmdlimit.utils.ConditionUtils;
 import me.panhaskins.cmdlimit.utils.DataManager;
+import me.panhaskins.cmdlimit.utils.Messager;
 import me.panhaskins.cmdlimit.utils.command.CommandManager;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,6 +28,7 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
 
     public static APIConfig config;
     public static DataManager dataManager;
+    public static Messager messager;
     private CustomPlaceholders customPlaceholders;
     public static Set<String> commandList = new HashSet<>();
 
@@ -34,6 +38,7 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
 
         // Plugin startup logic
         config = new APIConfig(this, "config.yml");
+        messager = new Messager();
 
         if(config.get().getBoolean("updateChecker")){
             new UpdateChecker(this, 100289).getLatestVersion(version -> {
@@ -49,34 +54,29 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
         }
 
         commandList.addAll(config.get().getConfigurationSection("commands").getKeys(false));
-
-        //CommandManager commandManager = new CommandManager(this, config);
-        //commandManager.registerCommands(new Commands(commandManager));
-        //commandManager.registerCommand(new Commands(commandManager), null, "cmdlimiter");
-
-        // Registrácia admin príkazu
         CommandManager.registerCommand(this, new AdminCommand(this));
 
         if (!commandList.isEmpty()) {
             for (String commandName : commandList) {
-                CommandManager.registerCommand(this, new FreeCommands(commandName, config.get().getConfigurationSection("commands." + commandName)));
+                if (config.get().getBoolean("commands." + commandName + ".isCustomCommand", true))
+                    CommandManager.registerCommand(this, new FreeCommands(commandName, config.get().getConfigurationSection("commands." + commandName)));
             }
         }
+
 
         dataManager = new DataManager();
         dataManager.load();
 
-        customPlaceholders = new CustomPlaceholders();
-        customPlaceholders.register();
+        if (Bukkit.getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            customPlaceholders = new CustomPlaceholders();
+            customPlaceholders.register();
+        }
 
-        this.getServer().getPluginManager().registerEvents(this, this);
 
-        BukkitTask autosave = new BukkitRunnable() {
-            @Override
-            public void run() {
-                dataManager.save();
-            }
-        }.runTaskLaterAsynchronously(this, 20 * 60 * 5);
+        getServer().getPluginManager().registerEvents(new Listening(), this);
+
+        dataManager.startDataSaveTask();
+        dataManager.startCooldownCleanTask();
     }
 
     @EventHandler
@@ -86,9 +86,12 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
         for (String cmdName : commandList) {
 
             if (config.get().getBoolean("commands." + cmdName + ".join.enabled", false)) {
-                if(dataManager.getPlayer(player, cmdName) > config.get().getInt("commands." + cmdName + ".maxUse")){
-                    PlaceholderAPI.setPlaceholders(player, APIColor.process(config.get().getStringList("commands." + cmdName + ".join.message"))).forEach(player::sendMessage);
+                if (dataManager.isOnCooldown(player, cmdName)
+                        && dataManager.getPlayer(player.getName(), cmdName) > config.get().getInt("commands." + cmdName + ".maxUse")
+                        && dataManager.getGlobal(cmdName) > config.get().getInt("commands." + cmdName + ".globalMaxUse")) {
+                    messager.sendMessage(player, config.get().getStringList("commands." + cmdName + ".join.message"), player);
                 }
+
 
             }
 
@@ -99,7 +102,8 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        if(customPlaceholders != null) customPlaceholders.unregister();
+        if(customPlaceholders != null || Bukkit.getServer().getPluginManager().isPluginEnabled("PlaceholderAPI"))
+            customPlaceholders.unregister();
         if(dataManager != null) dataManager.save();
     }
 

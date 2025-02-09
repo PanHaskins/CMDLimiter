@@ -6,7 +6,7 @@
 
     <groupId>me.PanHaskins</groupId>
     <artifactId>CMDLimit</artifactId>
-    <version>3.0</version>
+    <version>3.1</version>
     <packaging>jar</packaging>
 
     <name>CMDLimit</name>
@@ -37,10 +37,6 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <outputFile>C:\Users\mkova\Desktop\Custom Plugins\1.17.1\CMDLimit.jar</outputFile>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -68,7 +64,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.17.1-R0.1-SNAPSHOT</version>
+            <version>1.21.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

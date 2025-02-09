@@ -25,7 +25,7 @@ public class CustomPlaceholders extends PlaceholderExpansion {
     public String onPlaceholderRequest(Player player, String placeholder) {
         for (String command : CMDLimiter.commandList) {
             if (placeholder.equalsIgnoreCase("use_" + command)) {
-                return String.valueOf(CMDLimiter.dataManager.getPlayer(player, command));
+                return String.valueOf(CMDLimiter.dataManager.getPlayer(player.getName(), command));
             }
         }
         return null;
