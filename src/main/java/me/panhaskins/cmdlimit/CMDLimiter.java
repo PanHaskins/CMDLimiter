@@ -1,24 +1,19 @@
 package me.panhaskins.cmdlimit;
 
-import me.clip.placeholderapi.PlaceholderAPI;
-import me.panhaskins.cmdlimit.api.APIColor;
 import me.panhaskins.cmdlimit.api.APIConfig;
+import me.panhaskins.cmdlimit.api.ColorMessage;
 import me.panhaskins.cmdlimit.api.UpdateChecker;
 import me.panhaskins.cmdlimit.commands.AdminCommand;
 import me.panhaskins.cmdlimit.commands.FreeCommands;
-import me.panhaskins.cmdlimit.utils.ConditionUtils;
 import me.panhaskins.cmdlimit.utils.DataManager;
 import me.panhaskins.cmdlimit.utils.Messager;
 import me.panhaskins.cmdlimit.utils.command.CommandManager;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -44,10 +39,10 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
             new UpdateChecker(this, 100289).getLatestVersion(version -> {
                 if (!this.getDescription().getVersion().equalsIgnoreCase(version)) {
                     Bukkit.getConsoleSender().sendMessage("");
-                    Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&eCMDLimiter &fPlugin"));
-                    Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&fYour plugin version is out of date."));
-                    Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &f&fI recommend updating it."));
-                    Bukkit.getConsoleSender().sendMessage(APIColor.process("&8[&6WARNING&r&8] &fhttps://www.spigotmc.org/resources/%E2%8F%B2-cmd-limiter-%E2%8F%B2.100289/"));
+                    Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&8[&6WARNING&r&8] &f&eCMDLimiter &fPlugin")));
+                    Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&8[&6WARNING&r&8] &f&fYour plugin version is out of date.")));
+                    Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&8[&6WARNING&r&8] &f&fI recommend updating it.")));
+                    Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&8[&6WARNING&r&8] &fhttps://www.spigotmc.org/resources/%E2%8F%B2-cmd-limiter-%E2%8F%B2.100289/")));
                     Bukkit.getConsoleSender().sendMessage("");
                 }
             });

@@ -31,7 +31,7 @@ public class UpdateChecker {
                 }
             } catch (IOException exception)
             {
-                Bukkit.getConsoleSender().sendMessage(APIColor.process("&cUPDATE CHECKER is broken, can´t find an update!\n" + exception.getMessage()));
+                Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&cUPDATE CHECKER is broken, can´t find an update!\n" + exception.getMessage())));
             }
         });
     }

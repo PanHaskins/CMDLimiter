@@ -1,8 +1,5 @@
 package me.panhaskins.cmdlimit.utils.command;
 
-import me.clip.placeholderapi.PlaceholderAPI;
-import me.panhaskins.cmdlimit.api.APIColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
