@@ -1,7 +1,6 @@
 package me.panhaskins.cmdlimit;
 
 import me.panhaskins.cmdlimit.api.APIConfig;
-import me.panhaskins.cmdlimit.api.ColorMessage;
 import me.panhaskins.cmdlimit.api.UpdateChecker;
 import me.panhaskins.cmdlimit.commands.AdminCommand;
 import me.panhaskins.cmdlimit.commands.FreeCommands;
@@ -23,7 +22,6 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
 
     public static APIConfig config;
     public static DataManager dataManager;
-    public static Messager messager;
     private CustomPlaceholders customPlaceholders;
     public static Set<String> commandList = new HashSet<>();
 
@@ -33,16 +31,15 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
 
         // Plugin startup logic
         config = new APIConfig(this, "config.yml");
-        messager = new Messager();
 
         if(config.get().getBoolean("updateChecker")){
             new UpdateChecker(this, 100289).getLatestVersion(version -> {
                 if (!this.getDescription().getVersion().equalsIgnoreCase(version)) {
                     Bukkit.getConsoleSender().sendMessage("");
-                    Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&8[&6WARNING&r&8] &f&eCMDLimiter &fPlugin")));
-                    Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&8[&6WARNING&r&8] &f&fYour plugin version is out of date.")));
-                    Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&8[&6WARNING&r&8] &f&fI recommend updating it.")));
-                    Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&8[&6WARNING&r&8] &fhttps://www.spigotmc.org/resources/%E2%8F%B2-cmd-limiter-%E2%8F%B2.100289/")));
+                    Bukkit.getConsoleSender().spigot().sendMessage(Messager.translateToBaseComponents("&8[&6WARNING&r&8] &f&eCMDLimiter &fPlugin"));
+                    Bukkit.getConsoleSender().spigot().sendMessage(Messager.translateToBaseComponents("&8[&6WARNING&r&8] &f&fYour plugin version is out of date."));
+                    Bukkit.getConsoleSender().spigot().sendMessage(Messager.translateToBaseComponents("&8[&6WARNING&r&8] &f&fI recommend updating it."));
+                    Bukkit.getConsoleSender().spigot().sendMessage(Messager.translateToBaseComponents("&8[&6WARNING&r&8] &fhttps://www.spigotmc.org/resources/%E2%8F%B2-cmd-limiter-%E2%8F%B2.100289/"));
                     Bukkit.getConsoleSender().sendMessage("");
                 }
             });
@@ -84,7 +81,7 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
                 if (dataManager.isOnCooldown(player, cmdName)
                         && dataManager.getPlayer(player.getName(), cmdName) > config.get().getInt("commands." + cmdName + ".maxUse")
                         && dataManager.getGlobal(cmdName) > config.get().getInt("commands." + cmdName + ".globalMaxUse")) {
-                    messager.sendMessage(player, config.get().getStringList("commands." + cmdName + ".join.message"), player);
+                    player.spigot().sendMessage(Messager.translateToBaseComponents(config.get().getString("commands." + cmdName + ".join.message"), player));
                 }
 
 

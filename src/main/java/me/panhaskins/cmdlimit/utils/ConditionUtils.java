@@ -93,7 +93,10 @@ public class ConditionUtils {
                 )) {
                     metRequirements++;
                 } else {
-                    CMDLimiter.messager.sendMessage(player, requirementsSection.getString(requirement + ".denyMessage"), player);
+                    player.spigot().sendMessage(Messager.translateToBaseComponents(
+                            requirementsSection.getString(requirement + ".denyMessage", "&cYou do not meet the requirements for this command!"),
+                            player
+                    ));
                     return false;
 
                 }

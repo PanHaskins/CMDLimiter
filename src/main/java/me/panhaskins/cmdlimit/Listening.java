@@ -1,6 +1,7 @@
 package me.panhaskins.cmdlimit;
 
 import me.panhaskins.cmdlimit.utils.ConditionUtils;
+import me.panhaskins.cmdlimit.utils.Messager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -22,9 +23,9 @@ public class Listening implements Listener {
             if (event.getMessage().startsWith("/" + command.toLowerCase())) {
 
                 if (CMDLimiter.dataManager.isOnCooldown(player, command)) {
-                    CMDLimiter.messager.sendMessage(player, CMDLimiter.config.get().getString("cooldown")
-                                    .replaceAll("%time%", String.valueOf(CMDLimiter.dataManager.getRemainingCooldown(player, command)))
-                                    .replaceAll("%command%", command), player);
+                    player.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("cooldown")
+                            .replaceAll("%time%", String.valueOf(CMDLimiter.dataManager.getRemainingCooldown(player, command)))
+                            .replaceAll("%command%", command), player));
                     event.setCancelled(true);
                     return;
                 }
@@ -37,13 +38,13 @@ public class Listening implements Listener {
                         int playerUse = CMDLimiter.dataManager.getPlayer(player.getName(), command);
 
                         if (globalUse > globalMaxUse && globalMaxUse > 0) {
-                            CMDLimiter.messager.sendMessage(player, commandSection.getString("globalUsed"), player);
+                            player.spigot().sendMessage(Messager.translateToBaseComponents(commandSection.getString("globalUsed"), player));
                             event.setCancelled(true);
                             return;
                         }
 
                         if (playerUse > maxUse && maxUse > 0) {
-                            CMDLimiter.messager.sendMessage(player, commandSection.getString("used"), player);
+                            player.spigot().sendMessage(Messager.translateToBaseComponents(commandSection.getString("used"), player));
                             event.setCancelled(true);
                             return;
                         }
@@ -52,7 +53,7 @@ public class Listening implements Listener {
                         if (!commandSection.getStringList("console").isEmpty())
                             commandSection.getStringList("console").forEach(consoleCommand ->
                                     Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), consoleCommand.replace("%player%", player.getName())));
-                        CMDLimiter.messager.sendMessage(player, commandSection.getString("use"), player);
+                        player.spigot().sendMessage(Messager.translateToBaseComponents(commandSection.getString("use"), player));
                         int cooldown = commandSection.getInt("cooldown", 0);
                         if (cooldown > 0) CMDLimiter.dataManager.setCooldown(player, command, cooldown);
                     }

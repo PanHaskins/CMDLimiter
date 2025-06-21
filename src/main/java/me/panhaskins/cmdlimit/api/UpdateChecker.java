@@ -1,6 +1,7 @@
 package me.panhaskins.cmdlimit.api;
 
 import me.panhaskins.cmdlimit.CMDLimiter;
+import me.panhaskins.cmdlimit.utils.Messager;
 import org.bukkit.Bukkit;
 
 import java.io.IOException;
@@ -31,7 +32,7 @@ public class UpdateChecker {
                 }
             } catch (IOException exception)
             {
-                Bukkit.getConsoleSender().sendMessage(ColorMessage.toLegacy(ColorMessage.translate("&cUPDATE CHECKER is broken, can´t find an update!\n" + exception.getMessage())));
+                Bukkit.getConsoleSender().spigot().sendMessage(Messager.translateToBaseComponents("&cUPDATE CHECKER is broken, can´t find an update!\n" + exception.getMessage()));
             }
         });
     }

@@ -2,6 +2,7 @@ package me.panhaskins.cmdlimit.commands;
 
 import me.panhaskins.cmdlimit.CMDLimiter;
 import me.panhaskins.cmdlimit.utils.ConditionUtils;
+import me.panhaskins.cmdlimit.utils.Messager;
 import me.panhaskins.cmdlimit.utils.command.Commander;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class FreeCommands extends Commander {
@@ -28,16 +30,17 @@ public class FreeCommands extends Commander {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player)) {
-            CMDLimiter.messager.sendMessage((Player) sender, CMDLimiter.config.get().getString("playerOnly"));
+            sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("playerOnly")));
             return true;
         }
 
         Player player = (Player) sender;
         String commandName = command.getName();
         if (CMDLimiter.dataManager.isOnCooldown(player, commandName)) {
-            CMDLimiter.messager.sendMessage(player, CMDLimiter.config.get().getString("cooldown")
+            player.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("cooldownMessage")
                     .replaceAll("%time%", String.valueOf(CMDLimiter.dataManager.getRemainingCooldown(player, commandName)))
-                    .replaceAll("%command%", commandName), player);
+                    .replaceAll("%command%", commandName), player));
+
             return false;
         }
 
@@ -70,12 +73,12 @@ public class FreeCommands extends Commander {
             CMDLimiter.dataManager.setPlayer(player.getName(), command, playerUse + 1);
             commandSection.getStringList("console").forEach(consoleCommand ->
                     Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), consoleCommand.replace("%player%", player.getName())));
-            CMDLimiter.messager.sendMessage(player, commandSection.getString("use"), player);
+            player.spigot().sendMessage(Messager.translateToBaseComponents(commandSection.getString("use"), player));
 
             int cooldown = commandSection.getInt("cooldown", 0);
             if (cooldown > 0) CMDLimiter.dataManager.setCooldown(player, command, cooldown);
         } else{
-            CMDLimiter.messager.sendMessage(player, commandSection.getString("used"), player);
+            player.spigot().sendMessage(Messager.translateToBaseComponents(commandSection.getString("used"), player));
         }
 
     }
