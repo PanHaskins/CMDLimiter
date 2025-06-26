@@ -73,8 +73,8 @@ public class FreeCommands extends Commander {
             CMDLimiter.dataManager.setPlayer(player.getName(), command, playerUse + 1);
             commandSection.getStringList("console").forEach(consoleCommand ->
                     Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), consoleCommand.replace("%player%", player.getName())));
-            player.spigot().sendMessage(Messager.translateToBaseComponents(commandSection.getString("use"), player));
-
+            Messager.translateToBaseComponents(commandSection.getStringList("use"), player).forEach(
+                    baseComponent -> player.spigot().sendMessage(baseComponent));
             int cooldown = commandSection.getInt("cooldown", 0);
             if (cooldown > 0) CMDLimiter.dataManager.setCooldown(player, command, cooldown);
         } else{
