@@ -15,7 +15,7 @@ public class Listening implements Listener {
         Player player = event.getPlayer();
 
         for (String command : CMDLimiter.commandList) {
-            ConfigurationSection commandSection = CMDLimiter.config.get().getConfigurationSection("commands." + command);
+            ConfigurationSection commandSection = CMDLimiter.config.getConfig("config.yml").getConfigurationSection("commands." + command);
             if (commandSection == null || commandSection.getBoolean("isCustomCommand", true)) {
                 continue;
             }
@@ -23,7 +23,7 @@ public class Listening implements Listener {
             if (event.getMessage().startsWith("/" + command.toLowerCase())) {
 
                 if (CMDLimiter.dataManager.isOnCooldown(player, command)) {
-                    player.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("cooldown")
+                    player.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("cooldown")
                             .replaceAll("%time%", String.valueOf(CMDLimiter.dataManager.getRemainingCooldown(player, command)))
                             .replaceAll("%command%", command), player));
                     event.setCancelled(true);

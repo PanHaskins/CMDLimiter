@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,21 +24,21 @@ public class AdminCommand extends Commander {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("cmdlimiter.admin")) {
-            sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("noPermission").replace("%command%", label)));
+            sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("noPermission").replace("%command%", label)));
             return true;
         }
 
         if (args.length == 0) {
-            Messager.translateToBaseComponents(CMDLimiter.config.get().getStringList("help")).forEach(baseComponent -> sender.spigot().sendMessage(baseComponent));
+            Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getStringList("help")).forEach(baseComponent -> sender.spigot().sendMessage(baseComponent));
             return true;
         }
 
         switch (args[0].toLowerCase()) {
             case "reload":
-                sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("reloading")));
-                CMDLimiter.config.reload();
+                sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("reloading")));
+                CMDLimiter.config.reload("config.yml");
                 CMDLimiter.dataManager.save();
-                ConfigurationSection commandSection = CMDLimiter.config.get().getConfigurationSection("commands");
+                ConfigurationSection commandSection = CMDLimiter.config.getConfig("config.yml").getConfigurationSection("commands");
                 CMDLimiter.commandList.retainAll(commandSection.getKeys(false));
                 if (!CMDLimiter.commandList.isEmpty()) {
                     for (String commandName : CMDLimiter.commandList) {
@@ -48,20 +47,20 @@ public class AdminCommand extends Commander {
                     }
                 }
 
-                sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("reloadComplete")));
+                sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("reloadComplete")));
                 break;
             case "add":
             case "remove":
             case "set":
                 if (args.length < 3) {
-                    sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("commandUsage")
+                    sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("commandUsage")
                             .replaceAll("%command%", "cmdlimiter " + args[0] + " <player> [command] <uses>")));
                     return true;
                 }
                 // target = args[1];
                 // commandName = args[2];
                 if (!CMDLimiter.commandList.contains(args[2].replace("_", " "))) {
-                    sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("commandNotFound")
+                    sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("commandNotFound")
                             .replaceAll("%command%", args[2])));
                     return true;
                 }
@@ -74,18 +73,18 @@ public class AdminCommand extends Commander {
                 }
 
                 CMDLimiter.dataManager.setPlayer(args[1], args[2], uses);
-                sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("setPlayerUses")
+                sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("setPlayerUses")
                         .replaceAll("%player%", args[1])
                         .replaceAll("%uses%", String.valueOf(uses))
                         .replaceAll("%command%", args[2])));
                 break;
             case "save":
                 CMDLimiter.dataManager.save();
-                sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("dataSaved")));
+                sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("dataSaved")));
                 break;
 
             default:
-                Messager.translateToBaseComponents(CMDLimiter.config.get().getStringList("help"))
+                Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getStringList("help"))
                         .forEach(baseComponent -> sender.spigot().sendMessage(baseComponent));
         }
 

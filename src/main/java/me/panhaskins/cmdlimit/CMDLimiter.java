@@ -1,7 +1,7 @@
 package me.panhaskins.cmdlimit;
 
-import me.panhaskins.cmdlimit.api.APIConfig;
-import me.panhaskins.cmdlimit.api.UpdateChecker;
+import me.panhaskins.cmdlimit.utils.ConfigManager;
+import me.panhaskins.cmdlimit.utils.UpdateChecker;
 import me.panhaskins.cmdlimit.commands.AdminCommand;
 import me.panhaskins.cmdlimit.commands.FreeCommands;
 import me.panhaskins.cmdlimit.utils.DataManager;
@@ -20,7 +20,7 @@ import java.util.Set;
 
 public final class CMDLimiter extends JavaPlugin implements Listener {
 
-    public static APIConfig config;
+    public static ConfigManager config;
     public static DataManager dataManager;
     private CustomPlaceholders customPlaceholders;
     public static Set<String> commandList = new HashSet<>();
@@ -30,9 +30,9 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
     public void onEnable() {
 
         // Plugin startup logic
-        config = new APIConfig(this, "config.yml");
+        config = new ConfigManager(this, "config.yml");
 
-        if(config.get().getBoolean("updateChecker")){
+        if(config.getConfig("config.yml").getBoolean("updateChecker")){
             new UpdateChecker(this, 100289).getLatestVersion(version -> {
                 if (!this.getDescription().getVersion().equalsIgnoreCase(version)) {
                     Bukkit.getConsoleSender().sendMessage("");
@@ -45,13 +45,13 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
             });
         }
 
-        commandList.addAll(config.get().getConfigurationSection("commands").getKeys(false));
+        commandList.addAll(config.getConfig("config.yml").getConfigurationSection("commands").getKeys(false));
         CommandManager.registerCommand(this, new AdminCommand(this));
 
         if (!commandList.isEmpty()) {
             for (String commandName : commandList) {
-                if (config.get().getBoolean("commands." + commandName + ".isCustomCommand", true))
-                    CommandManager.registerCommand(this, new FreeCommands(commandName, config.get().getConfigurationSection("commands." + commandName)));
+                if (config.getConfig("config.yml").getBoolean("commands." + commandName + ".isCustomCommand", true))
+                    CommandManager.registerCommand(this, new FreeCommands(commandName, config.getConfig("config.yml").getConfigurationSection("commands." + commandName)));
             }
         }
 
@@ -77,11 +77,11 @@ public final class CMDLimiter extends JavaPlugin implements Listener {
 
         for (String cmdName : commandList) {
 
-            if (config.get().getBoolean("commands." + cmdName + ".join.enabled", false)) {
+            if (config.getConfig("config.yml").getBoolean("commands." + cmdName + ".join.enabled", false)) {
                 if (dataManager.isOnCooldown(player, cmdName)
-                        && dataManager.getPlayer(player.getName(), cmdName) > config.get().getInt("commands." + cmdName + ".maxUse")
-                        && dataManager.getGlobal(cmdName) > config.get().getInt("commands." + cmdName + ".globalMaxUse")) {
-                    player.spigot().sendMessage(Messager.translateToBaseComponents(config.get().getString("commands." + cmdName + ".join.message"), player));
+                        && dataManager.getPlayer(player.getName(), cmdName) > config.getConfig("config.yml").getInt("commands." + cmdName + ".maxUse")
+                        && dataManager.getGlobal(cmdName) > config.getConfig("config.yml").getInt("commands." + cmdName + ".globalMaxUse")) {
+                    player.spigot().sendMessage(Messager.translateToBaseComponents(config.getConfig("config.yml").getString("commands." + cmdName + ".join.message"), player));
                 }
 
 

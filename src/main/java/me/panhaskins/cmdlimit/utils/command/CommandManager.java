@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class CommandManager {
     private static CommandMap commandMap;
-    private static Map<String, Command> registeredCommands = new HashMap<>();
+    private static final Map<String, Command> registeredCommands = new HashMap<>();
 
     static {
         try {

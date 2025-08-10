@@ -1,7 +1,6 @@
 package me.panhaskins.cmdlimit.utils;
 
 import me.panhaskins.cmdlimit.CMDLimiter;
-import me.panhaskins.cmdlimit.api.APIConfig;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,12 +16,12 @@ public class DataManager {
     private final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
 
     public void load() {
-        APIConfig data = new APIConfig(JavaPlugin.getPlugin(CMDLimiter.class), "data.yml");
+        ConfigManager data = new ConfigManager(JavaPlugin.getPlugin(CMDLimiter.class), "data.yml");
         playerData.clear();
 
         for (String command : CMDLimiter.commandList) {
             Map<String, Integer> playerData = new HashMap<>();
-            ConfigurationSection playerList = data.get().getConfigurationSection("Data." + command);
+            ConfigurationSection playerList = data.getConfig("data.yml").getConfigurationSection("Data." + command);
             if (playerList != null) {
                 for (String player : playerList.getKeys(false)) {
                     playerData.put(player, playerList.getInt(player));
@@ -33,14 +32,14 @@ public class DataManager {
     }
 
     public void save() {
-        APIConfig data = new APIConfig(JavaPlugin.getPlugin(CMDLimiter.class), "data.yml");
+        ConfigManager data = new ConfigManager(JavaPlugin.getPlugin(CMDLimiter.class), "data.yml");
         for (Map.Entry<String, Map<String, Integer>> entry : playerData.entrySet()) {
             String command = entry.getKey();
             for (Map.Entry<String, Integer> playerEntry : entry.getValue().entrySet()) {
-                data.get().set("Data." + command + "." + playerEntry.getKey(), playerEntry.getValue());
+                data.getConfig("data.yml").set("Data." + command + "." + playerEntry.getKey(), playerEntry.getValue());
             }
         }
-        data.save();
+        data.save("data.yml");
     }
 
     public List<String> getPlayerNames(String cmdName) {

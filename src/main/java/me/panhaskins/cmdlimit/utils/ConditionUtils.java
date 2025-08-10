@@ -16,62 +16,63 @@ public class ConditionUtils {
         input = PlaceholderAPI.setPlaceholders(player, input);
         output = PlaceholderAPI.setPlaceholders(player, output);
 
-        switch (type) {
-            case "<":
+        return switch (type) {
+            case "<" -> {
                 if ("currentDate".equals(input)) {
-                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.get().getString("dateFormat"));
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.getConfig("config.yml").getString("dateFormat"));
                     LocalDateTime currentDate = LocalDateTime.now();
                     LocalDateTime outputDate = LocalDateTime.parse(output, dateTimeFormatter);
-                    return currentDate.isBefore(outputDate);
+                    yield currentDate.isBefore(outputDate);
                 }
-                return Double.parseDouble(input) < Double.parseDouble(output);
-            case ">":
+                yield Double.parseDouble(input) < Double.parseDouble(output);
+            }
+            case ">" -> {
                 if ("currentDate".equals(input)) {
-                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.get().getString("dateFormat"));
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.getConfig("config.yml").getString("dateFormat"));
                     LocalDateTime currentDate = LocalDateTime.now();
                     LocalDateTime outputDate = LocalDateTime.parse(output, dateTimeFormatter);
-                    return currentDate.isAfter(outputDate);
+                    yield currentDate.isAfter(outputDate);
                 }
-                return Double.parseDouble(input) > Double.parseDouble(output);
-            case "<=":
-            case "=<":
+                yield Double.parseDouble(input) > Double.parseDouble(output);
+            }
+            case "<=", "=<" -> {
                 if ("currentDate".equals(input)) {
-                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.get().getString("dateFormat"));
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.getConfig("config.yml").getString("dateFormat"));
                     LocalDateTime currentDate = LocalDateTime.now();
                     LocalDateTime outputDate = LocalDateTime.parse(output, dateTimeFormatter);
-                    return currentDate.isBefore(outputDate) || currentDate.isEqual(outputDate);
+                    yield currentDate.isBefore(outputDate) || currentDate.isEqual(outputDate);
                 }
-                return Double.parseDouble(input) <= Double.parseDouble(output);
-            case ">=":
-            case "=>":
+                yield Double.parseDouble(input) <= Double.parseDouble(output);
+            }
+            case ">=", "=>" -> {
                 if ("currentDate".equals(input)) {
-                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.get().getString("dateFormat"));
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.getConfig("config.yml").getString("dateFormat"));
                     LocalDateTime currentDate = LocalDateTime.now();
                     LocalDateTime outputDate = LocalDateTime.parse(output, dateTimeFormatter);
-                    return currentDate.isAfter(outputDate) || currentDate.isEqual(outputDate);
+                    yield currentDate.isAfter(outputDate) || currentDate.isEqual(outputDate);
                 }
-                return Double.parseDouble(input) >= Double.parseDouble(output);
-            case "=":
-            case "==":
+                yield Double.parseDouble(input) >= Double.parseDouble(output);
+            }
+            case "=", "==" -> {
                 if ("currentDate".equals(input)) {
-                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.get().getString("dateFormat"));
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.getConfig("config.yml").getString("dateFormat"));
                     LocalDateTime currentDate = LocalDateTime.now();
                     LocalDateTime outputDate = LocalDateTime.parse(output, dateTimeFormatter);
-                    return currentDate.isEqual(outputDate);
+                    yield currentDate.isEqual(outputDate);
                 }
-                return input.equalsIgnoreCase(output);
-            case "=!":
-            case "!=":
+                yield input.equalsIgnoreCase(output);
+            }
+            case "=!", "!=" -> {
                 if ("currentDate".equals(input)) {
-                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.get().getString("dateFormat"));
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(CMDLimiter.config.getConfig("config.yml").getString("dateFormat"));
                     LocalDateTime currentDate = LocalDateTime.now();
                     LocalDateTime outputDate = LocalDateTime.parse(output, dateTimeFormatter);
-                    return !currentDate.isEqual(outputDate);
+                    yield !currentDate.isEqual(outputDate);
                 }
-                return !input.equalsIgnoreCase(output);
-
-        }
-        return false;
+                yield !input.equalsIgnoreCase(output);
+            }
+            default -> false;
+        };
 
     }
 

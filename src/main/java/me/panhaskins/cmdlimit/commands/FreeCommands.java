@@ -30,14 +30,14 @@ public class FreeCommands extends Commander {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player)) {
-            sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("playerOnly")));
+            sender.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("playerOnly")));
             return true;
         }
 
         Player player = (Player) sender;
         String commandName = command.getName();
         if (CMDLimiter.dataManager.isOnCooldown(player, commandName)) {
-            player.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.get().getString("cooldownMessage")
+            player.spigot().sendMessage(Messager.translateToBaseComponents(CMDLimiter.config.getConfig("config.yml").getString("cooldownMessage")
                     .replaceAll("%time%", String.valueOf(CMDLimiter.dataManager.getRemainingCooldown(player, commandName)))
                     .replaceAll("%command%", commandName), player));
 
@@ -57,7 +57,7 @@ public class FreeCommands extends Commander {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> commandList = new ArrayList<>();
         for (String cmd : CMDLimiter.commandList) {
-            if (CMDLimiter.config.get().getBoolean("commands." + cmd + ".isCustomCommand", true)) {
+            if (CMDLimiter.config.getConfig("config.yml").getBoolean("commands." + cmd + ".isCustomCommand", true)) {
                 commandList.add(cmd);
             }
         }

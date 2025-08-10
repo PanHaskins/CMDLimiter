@@ -1,7 +1,6 @@
-package me.panhaskins.cmdlimit.api;
+package me.panhaskins.cmdlimit.utils;
 
 import me.panhaskins.cmdlimit.CMDLimiter;
-import me.panhaskins.cmdlimit.utils.Messager;
 import org.bukkit.Bukkit;
 
 import java.io.IOException;
